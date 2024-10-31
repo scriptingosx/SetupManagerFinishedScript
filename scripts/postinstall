@@ -1,0 +1,23 @@
+#!/bin/sh
+
+export PATH=/usr/bin:/bin:/usr/sbin:/sbin
+
+flagFilePath="/private/var/db/.JamfSetupEnrollmentDone"
+
+identifier="com.jamf.setupmanager.finished"
+launchDaemonPath="/Library/LaunchDaemons/${identifier}.plist"
+
+if [ "$3" != "/" ]; then
+  echo "not installing on startup volume, exiting postinstall"
+  exit 0
+fi
+
+# do not ever load when flag file already exists
+if [ -f "$flagFilePath" ]; then
+  echo "found flag file, removing LaunchD plist files"
+  rm "$launchDaemonPath"
+  exit 0
+fi
+
+echo "loading launch daemon ${identifier}"
+launchctl load "$launchDaemonPath"
