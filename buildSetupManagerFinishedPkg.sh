@@ -9,7 +9,7 @@
 export PATH=/usr/bin:/bin:/usr/sbin:/sbin
 
 pkgname="SetupManagerFinished"
-version="2"
+version="5"
 identifier="com.jamf.setupmanager.finished"
 install_location="/"
 minOSVersion="12.0"
@@ -25,6 +25,9 @@ buildfolder="${projectfolder}/build"
 if [ ! -e "$buildfolder" ]; then
     mkdir "$buildfolder"
 fi
+
+# clean xattrs from payload
+xattr -c -r "$projectfolder/payload"
 
 # build the component package
 if ! pkgbuild --root "${projectfolder}/payload" \

@@ -2,8 +2,8 @@
 
 export PATH=/usr/bin:/bin:/usr/sbin:/sbin
 
-identifier="com.jamf.setupmanager"
-launchDaemonPath="/Library/LaunchAgents/${identifier}.plist"
+identifier="com.jamf.setupmanager.finished"
+launchDaemonPath="/Library/LaunchDaemons/${identifier}.plist"
 
 if [ "$3" != "/" ]; then
   echo "not installing on startup volume, exiting preinstall"
@@ -12,7 +12,7 @@ fi
 
 if launchctl list | grep -q "$identifier"; then
   echo "unloading launchDaemon for $identifier"
-  launchctl unload "$launchDaemonPath"
+  launchctl unload "$identifier"
 fi
 
 # always exit success regardless of exit code of above commands

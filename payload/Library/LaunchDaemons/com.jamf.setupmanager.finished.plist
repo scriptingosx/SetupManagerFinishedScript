@@ -5,7 +5,7 @@
 	<key>Label</key>
 	<string>com.jamf.setupmanager.finished</string>
 	<key>Program</key>
-	<string>/Library/Managed/setupManagerFinished.sh</string>
+	<string>/Library/Management/setupManagerFinished.sh</string>
 	<key>StandardErrorPath</key>
 	<string>/private/var/log/setupManagerFinished.log</string>
 	<key>StandardOutPath</key>

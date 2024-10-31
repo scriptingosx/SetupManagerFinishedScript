@@ -29,7 +29,7 @@ sleep 2
 # first, wait until jamf process is done, to let SM finish last recon
 while pgrep -xq jamf; do
   echo "waiting for jamf process to finish..."
-  sleep 2
+  sleep 5
 done
 
 # wait just a bit more for good measure
@@ -43,8 +43,8 @@ echo "running jamf policy trigger $jamf_custom_trigger"
 /usr/local/jamf/bin/jamf policy -trigger "$jamf_custom_trigger"
 
 # e.g. force a restart in 5 seconds
-echo "restarting in 5s..."
-shutdown -r +5s
+#echo "restarting in 5s..."
+#shutdown -r +5s
 
 # only run once, remove and unload launchd plist
 rm -f "$launchDaemonPath"
