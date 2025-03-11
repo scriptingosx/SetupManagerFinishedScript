@@ -21,16 +21,21 @@ signature="Developer ID Installer: Armin Briegel (JME5BW3F3R)"
 
 projectfolder=$(dirname "$0")
 buildfolder="${projectfolder}/build"
+payload="${projectfolder}/payload"
 
 if [ ! -e "$buildfolder" ]; then
     mkdir "$buildfolder"
 fi
 
 # clean xattrs from payload
-xattr -c -r "$projectfolder/payload"
+xattr -c -r "$payload"
+
+# set file modes
+chmod 755 "$payload/Library/Management/setupManagerFinished.sh"
+chmod 644 "$payload/Library/LaunchDaemons/com.jamf.setupmanager.finished.plist"
 
 # build the component package
-if ! pkgbuild --root "${projectfolder}/payload" \
+if ! pkgbuild --root "${payload}" \
               --identifier "${identifier}" \
               --version "${version}" \
               --ownership recommended \
