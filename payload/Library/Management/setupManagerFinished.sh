@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Setup Manager Finished
 
@@ -6,8 +6,64 @@
 
 export PATH=/usr/bin:/bin:/usr/sbin:/sbin
 
+# use osascript/JXA to get defaults values
+
+MANAGED_PREFERENCE_DOMAIN="com.jamf.setupmanager"
+
+getPref() { # $1: key, $2: default value, $3: domain
+	local key=${1:?"key required"}
+	local defaultValue=${2-:""}
+	local domain=${3:-"$MANAGED_PREFERENCE_DOMAIN"}
+	
+    value=$(osascript -l JavaScript \
+        -e "$.NSUserDefaults.alloc.initWithSuiteName('$domain').objectForKey('$key').js")
+    
+    if [[ -n $value ]]; then
+    	echo "$value"
+    else
+    	echo "$defaultValue"
+    fi
+}
+
+getPrefIsManaged() { # $1: key, $2: domain
+	local key=${1:?"key required"}
+	local domain=${2:-"$MANAGED_PREFERENCE_DOMAIN"}
+    
+    result=$(osascript -l JavaScript -e "$.NSUserDefaults.alloc.initWithSuiteName('$domain').objectIsForcedForKey('$key')")
+    if [[ "$result" ==  "true" ]]; then
+    	return 0
+    else
+    	return 1
+    fi
+}
+
+cleanupAndExit() {
+	# only run once, remove and unload launchd plist
+	rm -f "$launchDaemonPath"
+	
+	echo "unloading launchDaemon for $identifier"
+	launchctl unload "$launchDaemonPath"
+	
+	exit 0
+}
+
+
 # variables
-jamf_custom_trigger="setup_manager_finished"
+
+if getPrefIsManaged "finishedTrigger"; then
+	jamf_custom_trigger=$(getPref "finishedTrigger")
+	echo "Finished Trigger: $jamf_custom_trigger"
+fi
+
+if getPrefIsManaged "finishedScript"; then
+    script_path=$(getPref "finishedScript")
+    echo "Finished Script: $script_path"
+fi
+
+if [[ "$jamf_custom_trigger" == "" && "$script_path" == "" ]]; then
+	echo "no configurations found, exiting..."
+	cleanupAndExit
+fi
 
 flagFilePath="/private/var/db/.JamfSetupEnrollmentDone"
 
@@ -21,7 +77,7 @@ echo "$identifier: watchPath $flagFilePath triggered"
 
 if [ ! -f "$flagFilePath" ]; then
   echo "$flagFilePath does not exist, exiting"
-  exit 0
+  cleanUpAndExit
 fi
 
 sleep 2
@@ -35,19 +91,41 @@ done
 # wait just a bit more for good measure
 sleep 2
 
+# run custom jamf trigger
+jamf="/usr/local/jamf/bin/jamf"
+if [[ -x "$jamf" && "$jamf_custom_trigger" != "" ]]; then
+	echo "running jamf policy trigger $jamf_custom_trigger"
+	$jamf policy -trigger "$jamf_custom_trigger" -verbose 
+fi
 
-# put your actions here
+# run custom script_path
+if [[ "$script_path" != "" ]]; then
 
-# e.g. run a custom policy trigger
-echo "running jamf policy trigger $jamf_custom_trigger"
-/usr/local/jamf/bin/jamf policy -trigger "$jamf_custom_trigger"
+	# check executable
+	if [[ -x "$script_path" ]]; then
+		echo "$script_path is not executable"
+		cleanUpAndExit
+	fi
 
-# e.g. force a restart in 5 seconds
-#echo "restarting in 5s..."
-#shutdown -r +5s
+    # check owner
+    if [[ $(stat -f "%Sp %Su:%Sg" "$script_path") != "root:wheel" ]]; then
+    	echo "owner for $script_path not 'root:wheel'"
+    	cleanupAndExit
+	fi
+	
+	# check writable
+	if [[ $(stat -f "%Sp" "$script_path") == ?????w???? ]]; then
+		echo "$script_path must not be group writable"
+		cleanupAndExit
+	fi 
+	if [[ $(stat -f "%Sp" "$script_path") == ????????w? ]]; then
+		echo "$script_path must not be world writable"
+		cleanupAndExit
+	fi 
+	
+	# finally, run the script
+	echo "running script $script_path"
+	"#script_path"
+fi
 
-# only run once, remove and unload launchd plist
-rm -f "$launchDaemonPath"
-
-echo "unloading launchDaemon for $identifier"
-launchctl unload "$launchDaemonPath"
+cleanUpAndExit

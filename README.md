@@ -1,5 +1,16 @@
 # Run a script when Setup Manager is finished
 
+**Important Note**
+
+The "run when finished" functionality is now built-in to Setup Manager since version [1.3](https://github.com/jamf/Setup-Manager/releases/tag/v1.3). No need to build your own LaunchDaemon any more. Just set the `finshedScript` or `finishedTrigger` key in the Setup Manager profile. [More details in the documentation.](https://github.com/jamf/Setup-Manager/blob/main/ConfigurationProfile.md#finishedscript)
+
+[Download latest version of Setup Manager.](https://github.com/jamf/Setup-Manager/releases/latest)
+
+
+*This repo is now archived.**
+
+---
+
 This is a launchDaemon that works with [Setup Manager](https://github.com/Jamf-Concepts/Setup-Manager) for Jamf Pro and Jamf School.
 
 See [this blog post for background](https://scriptingosx.com/2025/01/run-a-script-when-setup-manager-is-finished/).
