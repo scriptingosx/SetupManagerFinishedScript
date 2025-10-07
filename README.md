@@ -7,7 +7,7 @@ The "run when finished" functionality is now built-in to Setup Manager since ver
 [Download latest version of Setup Manager.](https://github.com/jamf/Setup-Manager/releases/latest)
 
 
-*This repo is now archived.**
+*This repo is now archived.*
 
 ---
 
